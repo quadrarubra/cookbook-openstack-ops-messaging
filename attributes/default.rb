@@ -26,6 +26,4 @@ default['openstack']['mq']['cluster'] = false
 # see https://www.rabbitmq.com/clustering.html
 default['openstack']['mq']['search_for_cluster_disk_nodes'] = true
 
-if platform_family?('debian', 'suse')
-  override['rabbitmq']['use_distro_version'] = true
-end
+default['rabbitmq']['use_distro_version'] = true

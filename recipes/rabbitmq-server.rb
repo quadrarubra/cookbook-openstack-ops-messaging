@@ -35,22 +35,23 @@ node.set['openstack']['mq']['listen'] = listen_address
 
 if node['openstack']['mq']['rabbitmq']['use_ssl']
   if node['rabbitmq']['ssl_port'] != rabbit_endpoint.port
-    node.override['rabbitmq']['port'] = rabbit_endpoint.port
+    node.default['rabbitmq']['port'] = rabbit_endpoint.port
   else
     Chef::Log.error 'Unable to listen on the port #{rabbit_endpoint.port} for RabbitMQ TCP, which is listened on by SSL!'
   end
 else
-  node.override['rabbitmq']['port'] = rabbit_endpoint.port
+  node.default['rabbitmq']['port'] = rabbit_endpoint.port
 end
-node.override['rabbitmq']['address'] = listen_address
+node.default['rabbitmq']['address'] = listen_address
 
 # Clustering
 if node['openstack']['mq']['cluster']
-  node.override['rabbitmq']['cluster'] = node['openstack']['mq']['cluster']
-  node.override['rabbitmq']['erlang_cookie'] = get_password 'service', 'rabbit_cookie'
+  node.default['rabbitmq']['clustering']['enable'] = node['openstack']['mq']['cluster']
+  node.default['rabbitmq']['erlang_cookie'] = get_password 'service', 'rabbit_cookie'
   if node['openstack']['mq']['search_for_cluster_disk_nodes']
-    qs = "roles:#{node['openstack']['mq']['server_role']} AND chef_environment:#{node.chef_environment}"
-    node.override['rabbitmq']['cluster_disk_nodes'] = search(:node, qs).map do |n|
+    qs = "recipes:openstack-ops-messaging\\:\\:rabbitmq-server AND chef_environment:#{node.chef_environment}"
+    node.default['rabbitmq']['clustering']['use_auto_clustering'] = true
+    node.default['rabbitmq']['clustering']['cluster_nodes'] = search(:node, qs).map do |n|
       "#{user}@#{n['hostname']}"
     end.sort
   end
